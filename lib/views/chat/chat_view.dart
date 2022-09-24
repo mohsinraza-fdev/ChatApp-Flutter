@@ -5,6 +5,7 @@ import 'package:chat_app/viewmodels/chat_viewmodel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/foundation/key.dart';
 import 'package:flutter/src/widgets/framework.dart';
+import 'package:open_file/open_file.dart';
 import 'package:stacked/stacked.dart';
 
 class ChatView extends StatelessWidget {
@@ -104,9 +105,64 @@ class ChatView extends StatelessWidget {
                                       : viewModel.checkFilePathExistance(
                                               viewModel
                                                   .messages![index].filePath!)
-                                          ? Image.file(File(viewModel.registry[
-                                              viewModel.messages![index]
-                                                  .filePath!]!))
+                                          ? viewModel.messages![index]
+                                                      .fileType ==
+                                                  'image'
+                                              ? GestureDetector(
+                                                  onTap: () {
+                                                    OpenFile.open(viewModel
+                                                            .registry[
+                                                        viewModel
+                                                            .messages![index]
+                                                            .filePath!]!);
+                                                  },
+                                                  child: Image.file(File(
+                                                      viewModel.registry[
+                                                          viewModel
+                                                              .messages![index]
+                                                              .filePath!]!)),
+                                                )
+                                              : GestureDetector(
+                                                  onTap: () {
+                                                    OpenFile.open(viewModel
+                                                            .registry[
+                                                        viewModel
+                                                            .messages![index]
+                                                            .filePath!]!);
+                                                  },
+                                                  child: Container(
+                                                    height: 42,
+                                                    width: double.maxFinite,
+                                                    alignment: Alignment.center,
+                                                    padding: const EdgeInsets
+                                                            .symmetric(
+                                                        horizontal: 2),
+                                                    child: Row(
+                                                      children: [
+                                                        Expanded(
+                                                            child: Text(
+                                                          viewModel
+                                                              .messages![index]
+                                                              .fileName!,
+                                                          style:
+                                                              const TextStyle(
+                                                            fontSize: 18,
+                                                            fontWeight:
+                                                                FontWeight.w500,
+                                                            color: Colors.white,
+                                                          ),
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
+                                                        )),
+                                                        const Icon(
+                                                          Icons.file_copy,
+                                                          color: Colors.white,
+                                                          size: 35,
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                )
                                           : viewModel.isFileDownloading(
                                                   viewModel.messages![index].id)
                                               ? Container(
@@ -221,7 +277,25 @@ class ChatView extends StatelessWidget {
                       ),
                     ),
                     GestureDetector(
-                      onTap: () => viewModel.sendPhoto(context),
+                      onTap: () => viewModel.sendFile(context, 'file'),
+                      child: Container(
+                        height: 33,
+                        width: 33,
+                        alignment: Alignment.center,
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.create_new_folder,
+                          color: Colors.blue,
+                          size: 22,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 15),
+                    GestureDetector(
+                      onTap: () => viewModel.sendFile(context, 'image'),
                       child: Container(
                         height: 33,
                         width: 33,

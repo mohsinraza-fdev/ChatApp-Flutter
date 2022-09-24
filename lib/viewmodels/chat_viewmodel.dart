@@ -9,6 +9,7 @@ import 'package:chat_app/services/local_storage_service.dart';
 import 'package:chat_app/views/send_file/send_file_view.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dio/dio.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -147,13 +148,20 @@ class ChatViewModel extends BaseViewModel {
     conversationStream?.cancel();
   }
 
-  sendPhoto(BuildContext context) async {
-    final image = await ImagePicker().pickImage(source: ImageSource.gallery);
-    if (image != null) {
+  sendFile(BuildContext context, String type) async {
+    dynamic file;
+    if (type == 'file') {
+      FilePickerResult? res = await FilePicker.platform.pickFiles();
+      file = res?.files[0];
+    } else {
+      file = await ImagePicker().pickImage(source: ImageSource.gallery);
+    }
+    // final image = await ImagePicker().pickImage(source: ImageSource.gallery);
+    if (file != null) {
       final res = await showDialog(
           context: context,
           builder: (BuildContext context) =>
-              SendFileView(fileType: 'image', filePath: image.path));
+              SendFileView(fileType: type, filePath: file.path));
 
       if (res == true) {
         String messageId = fService.getNewMessageId(convoId!);
@@ -168,18 +176,18 @@ class ChatViewModel extends BaseViewModel {
             to: friendUid!,
             timeStamp: DateTime.now(),
             message: '',
-            fileName: image.name,
+            fileName: file.name,
             filePath: null,
-            fileType: 'image',
+            fileType: type,
             buffered: true);
 
         await localStorageService.addMessageToBuffer(message);
         mergeBuffer(messages ?? <CloudMessage>[]);
         notifyListeners();
-        await ref.putFile(File(image.path));
+        await ref.putFile(File(file.path));
         String url = await ref.getDownloadURL();
 
-        await localStorageService.addFileToRegistry(url, image.path);
+        await localStorageService.addFileToRegistry(url, file.path);
         registry = localStorageService.getFileRegistryData();
         message.buffered = false;
         message.filePath = url;
